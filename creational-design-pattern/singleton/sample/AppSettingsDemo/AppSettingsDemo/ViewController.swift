@@ -24,6 +24,11 @@ class ViewController: UIViewController {
                 print(n)    // prints random numbers 
             }
         }
+        AppSettings.shared.reset()
+        
+        DispatchQueue.concurrentPerform(iterations: count) { (index) in
+            AppSettings.shared.set(value: index, forKey: String(index))
+        }
     }
 
 

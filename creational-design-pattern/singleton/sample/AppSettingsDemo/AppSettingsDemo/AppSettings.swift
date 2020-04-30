@@ -9,7 +9,7 @@
 import Foundation
 
 final public class AppSettings {
-    private let serialQueue = DispatchQueue(label: "serialQueue ")
+    private let concurrentQueue = DispatchQueue(label: "concurrentQueue", attributes: DispatchQueue.Attributes.concurrent)
     
     private var settings: [String: Any] = [:]
     
@@ -18,14 +18,16 @@ final public class AppSettings {
     public static let shared = AppSettings()
     
     public func set(value: Any, forKey key: String) {
-        serialQueue.sync {
-            settings[key] = value
+        concurrentQueue.async(flags: .barrier) {
+            // Barrier turns concurrent queue to serial one temporarily. So, no other thread can modify internal settings dictionary while this block is executing
+            self.settings[key] = value
         }
     }
     
     public func object(forKey key: String) -> Any? {
         var result: Any?
-        serialQueue.sync {
+//        When barrier is not active, the concurrent queue can allow executing read operations in parellel 
+        concurrentQueue.sync {
             result = settings[key]
         }
         return result
